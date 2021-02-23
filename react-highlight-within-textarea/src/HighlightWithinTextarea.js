@@ -1,11 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from './styles/styles.css';
 import HighlighedContents from './HighlighedContents';
 
-export const HighlightWithinTextarea = ({value, onChange, highlight={}, className = "",  style={}, containerStyle={}, containerClassName="", onScroll, ...textareaProps}) => {
-  let containerProps = {}
-  const textareaClassName = `${styles.input} ${styles.content}`;
-  const textareaRef = useRef(null);
+export const HighlightWithinTextarea = React.forwardRef(({value, onChange, highlight={}, className = "",  style={}, containerStyle={}, containerClassName="", onScroll, ...textareaProps}, ref) => {
+  const textareaRef = ref || useRef(null);
   const backdropRef = useRef(null);
 
   className = `${styles.input} ${styles.content} ${className}`;
@@ -20,7 +18,35 @@ export const HighlightWithinTextarea = ({value, onChange, highlight={}, classNam
     value = fakeValue;
     onChange = event => {setFakeValue(event.target.value)};
   }
-  
+
+  useEffect(() => {
+    const copyNodeStyle = (sourceNode, targetNode) => {
+      const computedStyle = window.getComputedStyle(sourceNode, null);
+      console.log(computedStyle)
+      const relevantStyles = [
+        "padding-left",
+        "padding-top",
+        "padding-right",
+        "padding-bottom",
+        "text-align",
+        "text",
+        "height",
+        "letter-spacing",
+        "line-height",
+        "font-size",
+        "font-weight"
+      ]
+      Array.from(computedStyle).forEach(function (key) {
+        if (relevantStyles.includes(key)){
+          return targetNode.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key));
+        }
+      });
+    }
+
+    copyNodeStyle(textareaRef.current, backdropRef.current)
+  });
+
+
   const handleScroll = event => {
     backdropRef.current.scrollTop = textareaRef.current.scrollTop;
     backdropRef.current.scrollLeft = textareaRef.current.scrollLeft;
@@ -39,3 +65,4 @@ export const HighlightWithinTextarea = ({value, onChange, highlight={}, classNam
     </div>
   );
 }
+);
